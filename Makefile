@@ -4,7 +4,7 @@
 
 NAME	=	mysh
 
-CC	=	clang
+CC	=	epiclang
 
 CFLAGS	=	-Wall -Wextra -Werror -I./include -I.
 
