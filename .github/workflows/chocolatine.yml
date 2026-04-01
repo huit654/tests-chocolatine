@@ -1,0 +1,108 @@
+name: Chocolatine
+
+on:
+  push:
+    branches-ignore:
+      - "no-ga/**"
+  pull_request:
+    branches-ignore:
+      - "no-ga/**"
+
+env:
+  MIRROR_SSH_URL: ${{ secrets.MIRROR_SSH_URL }}
+  EXECUTABLES: ${{ vars.EXECUTABLES }}
+
+jobs:
+  check_compilation_and_coding_style:
+    name: Check Compilation and Coding Style
+    runs-on: ubuntu-latest
+    container:
+      image: epitechcontent/epitest-docker
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Banana coding style check
+        run: banana-check-repo
+
+      - name: Compile project with epiclang
+        timeout-minutes: 2
+        run: make
+        env:
+          CC: epiclang
+
+      - name: Display coding style errors as annotations
+        if: always()
+        run: |
+          if [ -f coding-style-reports.log ]; then
+            while IFS= read -r line; do
+              file=$(echo "$line" | cut -d':' -f1)
+              lineno=$(echo "$line" | cut -d':' -f2)
+              code=$(echo "$line" | cut -d':' -f3 | xargs)
+              msg=$(echo "$line" | cut -d':' -f4- | xargs)
+              echo "::error file=${file},line=${lineno}::${code} - ${msg}"
+            done < coding-style-reports.log
+          fi
+
+      - name: Fail if coding style errors are present
+        run: |
+          if [ -f coding-style-reports.log ] && [ -s coding-style-reports.log ]; then
+            echo "Coding style errors found."
+            exit 1
+          fi
+
+      - name: Clean build artifacts
+        run: make clean
+
+      - name: Verify executables exist and are executable
+        run: |
+          IFS=',' read -ra EXECS <<< "$EXECUTABLES"
+          FAILED=0
+          for exec in "${EXECS[@]}"; do
+            exec=$(echo "$exec" | xargs)
+            if [ ! -f "$exec" ]; then
+              echo "::error file=${exec}::Executable '${exec}' was not found after compilation."
+              FAILED=1
+            elif [ ! -x "$exec" ]; then
+              echo "::error file=${exec}::File '${exec}' exists but is not executable."
+              FAILED=1
+            fi
+          done
+          if [ "$FAILED" -ne 0 ]; then
+            exit 1
+          fi
+
+  run_tests:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: check_compilation_and_coding_style
+    container:
+      image: epitechcontent/epitest-docker
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run test suite
+        timeout-minutes: 2
+        run: make tests_run
+
+  push_to_mirror:
+    name: Push to Mirror Repository
+    runs-on: ubuntu-latest
+    needs: run_tests
+    if: ${{ github.event_name == 'push' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Mirror to Epitech repository
+        uses: pixta-dev/repository-mirroring-action@v1
+        with:
+          target_repo_url: ${{ env.MIRROR_SSH_URL }}
+          ssh_private_key: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
