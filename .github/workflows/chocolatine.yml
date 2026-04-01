@@ -56,7 +56,9 @@ jobs:
       - name: Clean build artifacts
         run: make clean
 
+      # ✅ CORRECTION ICI → ajout de bash
       - name: Verify executables exist and are executable
+        shell: bash
         run: |
           IFS=',' read -ra EXECS <<< "$EXECUTABLES"
           FAILED=0
