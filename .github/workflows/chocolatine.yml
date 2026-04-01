@@ -10,7 +10,7 @@ on:
 
 env:
   MIRROR_SSH_URL: ${{ secrets.MIRROR_SSH_URL }}
-  EXECUTABLES: ${{ vars.EXECUTABLES }}
+  EXECUTABLES: "mysh"
 
 jobs:
   check_compilation_and_coding_style:
