@@ -4,7 +4,7 @@
 
 NAME	=	mysh
 
-CC	=	epiclang
+CC	=	clang
 
 CFLAGS	=	-Wall -Wextra -Werror -I./include -I.
 
@@ -44,3 +44,6 @@ fclean:	clean
 	rm -f $(NAME)
 
 re: fclean all
+
+tests_run:
+	@echo "No tests yet"
