@@ -56,7 +56,6 @@ jobs:
       - name: Clean build artifacts
         run: make clean
 
-      # ✅ CORRECTION ICI → ajout de bash
       - name: Verify executables exist and are executable
         shell: bash
         run: |
@@ -96,7 +95,7 @@ jobs:
     name: Push to Mirror Repository
     runs-on: ubuntu-latest
     needs: run_tests
-    if: ${{ github.event_name == 'push' }}
+    if: false 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
