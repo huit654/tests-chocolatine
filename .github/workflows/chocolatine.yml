@@ -10,7 +10,7 @@ on:
 
 env:
   MIRROR_SSH_URL: ${{ secrets.MIRROR_SSH_URL }}
-  EXECUTABLES: "mysh"
+  EXECUTABLES: "robot-factory"
 
 jobs:
   check_compilation_and_coding_style:
@@ -56,6 +56,7 @@ jobs:
       - name: Clean build artifacts
         run: make clean
 
+      # ✅ CORRECTION ICI → ajout de bash
       - name: Verify executables exist and are executable
         shell: bash
         run: |
@@ -95,7 +96,7 @@ jobs:
     name: Push to Mirror Repository
     runs-on: ubuntu-latest
     needs: run_tests
-    if: ${{ github.event_name == 'push' }} 
+    if: ${{ github.event_name == 'push' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

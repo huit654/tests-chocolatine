@@ -1,49 +1,46 @@
 ##
-## Makefile — mysh (Minishell2)
+## EPITECH PROJECT, 2026
+## MY_TOP
+## File description:
+## Makefile
 ##
 
-NAME	=	mysh
+NAME = robot-factory
 
-CC	=	clang
+TESTNAME = unit_tests
 
-CFLAGS	=	-Wall -Wextra -Werror -I./include -I.
+CC = clang
 
-SRC	=	main.c		\
-		lexer.c		\
-		lexer_utils.c	\
-		parser.c		\
-		parser_cmd.c	\
-		parser_argv.c	\
-		parser_free.c	\
-		exec.c		\
-		exec_child.c	\
-		exec_pipe.c		\
-		builtin.c		\
-		builtin_cd.c	\
-		builtin_env.c	\
-		env.c		\
-		env_utils.c		\
-		redir.c		\
-		redir_heredoc.c	\
-		path.c		\
-		my_str.c		\
-		my_mem.c		\
-		my_path.c
+SRC	=	srcs/print_usage.c	\
+		srcs/robot_factory.c	\
+		srcs/header_prog_name.c	\
+		srcs/my_strcpy.c	\
+		srcs/my_strcmp.c	\
+		srcs/my_strlen.c	\
+		srcs/my_strtok.c	\
 
-OBJ	=	$(SRC:.c=.o)
+OBJ = $(SRC:.c=.o)
 
-all:	$(NAME)
+TMP_FILES = *~\
+	*.pch\
+	*.log \
+	a.out \
+	*.gcov\
+	*.gcno\
+	*.gcda
+
+all : $(NAME)
 
 $(NAME): $(OBJ)
-	$(CC) $(CFLAGS) -o $(NAME) $(OBJ)
+	$(CC)  $(SRC) -o $(NAME) -lc -g3
 
-clean:
+clean :
 	rm -f $(OBJ)
 
-fclean:	clean
-	rm -f $(NAME)
+fclean : clean
+	rm -f $(NAME) $(TMP_FILES) $(TESTNAME)
+	rm -f srcs/$(TMP_FILES)
+	rm -f tests/$(TMP_FILES)
+	rm -f tests/test/$(TMP_FILES)
 
 re: fclean all
-
-tests_run:
-	@echo "No tests yet"
