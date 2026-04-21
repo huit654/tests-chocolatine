@@ -10,7 +10,7 @@ on:
 
 env:
   MIRROR_SSH_URL: ${{ secrets.MIRROR_SSH_URL }}
-  EXECUTABLES: "robot-factory"
+  EXECUTABLES: ${{ vars.EXECUTABLES }}
 
 jobs:
   check_compilation_and_coding_style:
@@ -25,7 +25,9 @@ jobs:
           fetch-depth: 1
 
       - name: Run Banana coding style check
-        run: banana-check-repo
+        run: |
+          banana-check-repo 2>&1 | tee /tmp/banana_output.txt
+          exit 0
 
       - name: Compile project with epiclang
         timeout-minutes: 2
@@ -36,19 +38,17 @@ jobs:
       - name: Display coding style errors as annotations
         if: always()
         run: |
-          if [ -f coding-style-reports.log ]; then
-            while IFS= read -r line; do
-              file=$(echo "$line" | cut -d':' -f1)
-              lineno=$(echo "$line" | cut -d':' -f2)
-              code=$(echo "$line" | cut -d':' -f3 | xargs)
-              msg=$(echo "$line" | cut -d':' -f4- | xargs)
-              echo "::error file=${file},line=${lineno}::${code} - ${msg}"
-            done < coding-style-reports.log
-          fi
+          while IFS= read -r line; do
+            file=$(echo "$line" | cut -d':' -f1)
+            lineno=$(echo "$line" | cut -d':' -f2)
+            code=$(echo "$line" | cut -d':' -f3 | xargs)
+            msg=$(echo "$line" | cut -d':' -f4- | xargs)
+            echo "::error file=${file},line=${lineno}::${code} - ${msg}"
+          done < /tmp/banana_output.txt
 
       - name: Fail if coding style errors are present
         run: |
-          if [ -f coding-style-reports.log ] && [ -s coding-style-reports.log ]; then
+          if [ -s /tmp/banana_output.txt ]; then
             echo "Coding style errors found."
             exit 1
           fi
@@ -56,9 +56,7 @@ jobs:
       - name: Clean build artifacts
         run: make clean
 
-      # ✅ CORRECTION ICI → ajout de bash
       - name: Verify executables exist and are executable
-        shell: bash
         run: |
           IFS=',' read -ra EXECS <<< "$EXECUTABLES"
           FAILED=0
